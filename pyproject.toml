@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fft-iso-patcher"
+version = "0.1.0"
+description = "Apply music/sprite/effect/byte/ASM patches to a PSX FFT ISO."
+requires-python = ">=3.11"
+dependencies = [
+    "textual>=0.79",
+]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+package = ["pyinstaller>=6.10"]
+
+[project.scripts]
+fft-iso-patcher = "fft_iso_patcher.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["fft_iso_patcher*"]

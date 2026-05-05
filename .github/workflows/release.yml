@@ -1,0 +1,86 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  python-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Build sdist + wheel
+        run: uv build
+
+      - name: List artifacts
+        run: ls -lh dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-dist
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+
+  windows-exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install runtime + PyInstaller
+        run: uv sync --group package
+
+      - name: Build fft-iso-patcher.exe
+        shell: pwsh
+        run: |
+          uv run pyinstaller --noconfirm --onefile `
+            --name fft-iso-patcher `
+            --collect-submodules textual `
+            --collect-data textual `
+            -p . `
+            fft_iso_patcher/__main__.py
+
+      - name: Show build outputs
+        shell: pwsh
+        run: Get-ChildItem dist | Select-Object Name, Length, LastWriteTime
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: dist/fft-iso-patcher.exe
+
+  release:
+    needs: [python-build, windows-exe]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+
+      - name: Show release contents
+        run: ls -lh assets/
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            assets/*.whl
+            assets/*.tar.gz
+            assets/*.exe
+          generate_release_notes: true
+          draft: false
+          prerelease: false

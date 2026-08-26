@@ -15,3 +15,4 @@ class PatchKind(str, Enum):
     as the bare string for manifest JSON / dict keys."""
 
     MUSIC = "music"
+    MAP = "map"

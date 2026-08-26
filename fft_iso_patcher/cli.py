@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from .asset_dirs import standard_assets_dir
+from .assets.map import summary_line as _map_summary_line
 from .constants import MUSIC_TABLE_OFFSET, N_MUSIC_SLOTS, SCUS_PATH
 from .extract import ExtractedFile, extract
 from .iso9660 import find_file
@@ -21,7 +22,11 @@ def _cmd_apply(args: argparse.Namespace) -> int:
     print(f"Applied {len(manifest.placements)} patch(es).")
     if manifest.placements:
         for p in manifest.placements:
-            print(f"  {p.get('kind')}: {p}")
+            if p.get("kind") == "map":
+                # A raw resource list would be a wall of text (§5).
+                print(f"  {_map_summary_line(p)}")
+            else:
+                print(f"  {p.get('kind')}: {p}")
     if args.recipe.endswith(".toml"):
         # Show output paths for clarity.
         print(f"Output ISO: {manifest.iso_out}")
@@ -62,7 +67,7 @@ def _cmd_extract(args: argparse.Namespace) -> int:
     extracted = extract(iso, out, on_file=progress)
     print(f"Extracted {len(extracted)} files ({total_bytes / 1_000_000:.1f} MB) to {out}")
     print()
-    print("smd-player and the DAW plugin will pick this up automatically.")
+    print("exmateria-sound and the DAW plugin will pick this up automatically.")
     print(f"To override the location, set EXMATERIA_ASSETS_DIR={out}")
     return 0
 
@@ -103,7 +108,7 @@ def main(argv: list[str] | None = None) -> int:
 
     extract_p = sub.add_parser(
         "extract",
-        help="Dump the disc tree (BATTLE.BIN, SOUND/, EFFECT/, ...) so smd-player and the DAW plugin can find it.",
+        help="Dump the disc tree (BATTLE.BIN, SOUND/, EFFECT/, ...) so exmateria-sound and the DAW plugin can find it.",
     )
     extract_p.add_argument("iso", help="Path to PSX FFT ISO bin.")
     extract_p.add_argument(
@@ -130,7 +135,7 @@ def extract_main(argv: list[str] | None = None) -> int:
         prog="exmateria-extract",
         description=(
             "Extract the FFT PSX disc into the standard exmateria assets "
-            "directory so smd-player and the DAW plugin can find it."
+            "directory so exmateria-sound and the DAW plugin can find it."
         ),
     )
     parser.add_argument("iso", help="Path to PSX FFT ISO bin.")

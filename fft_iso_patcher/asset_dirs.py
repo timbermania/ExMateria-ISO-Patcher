@@ -1,7 +1,7 @@
 """Standard location for the extracted FFT disc tree.
 
 A single canonical directory that all exmateria-* tools (iso-patcher,
-smd-player, daw-plugin) check by default. ``exmateria-extract`` writes
+exmateria-sound, daw-plugin) check by default. ``exmateria-extract`` writes
 here; the other tools read from here. No env var required for the
 typical install.
 

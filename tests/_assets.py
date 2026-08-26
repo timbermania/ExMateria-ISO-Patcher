@@ -58,6 +58,15 @@ def iso_path() -> Path:
     monorepo = _walk_up_to_project_assets()
     if monorepo is None:
         return _ISO_SENTINEL
+    # Accept either "Final Fantasy Tactics.bin" or a release-suffixed
+    # variant like "Final Fantasy Tactics (USA).bin", under either
+    # project-assets/ or project-assets/fft-extract/.
+    for base in (monorepo, monorepo / "fft-extract"):
+        if not base.is_dir():
+            continue
+        matches = sorted(base.glob("Final Fantasy Tactics*.bin"))
+        if matches:
+            return matches[0]
     return monorepo / "Final Fantasy Tactics.bin"
 
 

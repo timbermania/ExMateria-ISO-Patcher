@@ -139,7 +139,22 @@ reserved_for_shishi = [219250, 224050]
 slot = 41
 file = "aerith.smd"
 allow_relocate = true   # required if the new SMD is bigger than the slot
+
+# One entry per (map, arrangement): `file` is the build-output bundle
+# directory (the map's GNS + one blob per referenced resource).
+[[patches.map]]
+map = 42                 # map id 0-125 (BATTLE.BIN table index)
+arrangement = 0          # GNS record byte 2
+file = "maps/MAP042.a0"
+allow_relocate = false   # default; needed if any blob outgrows its allocation
 ```
+
+Map bundles are produced by the `exmateria-map` build step; the patcher
+verifies the bundle against the disc (record count, verbatim cross-check,
+record-to-blob pairing) before writing anything, fixes up the GNS's
+`(lba, length)` fields — including the type-49 terminator records that
+echo the map's last resource — and pokes the ISO9660 directory records
+for anything that moved or resized. Full spec: `docs/map-leg-v1.md`.
 
 The accompanying manifest JSON records *what actually happened* —
 resolved LBAs, sector counts, whether each slot landed in-place or got
@@ -150,6 +165,7 @@ relocated.
 | Kind | Status | Description |
 |------|--------|-------------|
 | `patches.music`   | Implemented (in-place + relocation) | Replace `MUSIC_##.SMD`. Engine cap 20480 bytes per file. |
+| `patches.map`     | Implemented (in-place + relocation) | Replace a `(map, arrangement)`'s map resources + fix up its GNS. See `docs/map-leg-v1.md`. |
 | `patches.byte`    | Planned | Raw `(sector, offset, bytes)` write. |
 | `patches.sprite`  | Planned | Replace battle character sprite. |
 | `patches.effect`  | Planned | Replace `E###.BIN` effect file. |

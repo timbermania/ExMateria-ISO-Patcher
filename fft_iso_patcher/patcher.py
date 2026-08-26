@@ -10,6 +10,7 @@ from typing import Callable
 from .assets import ASSET_HANDLERS
 # Importing the asset modules has the side effect of registering handlers.
 from .assets import byte_patch as _byte_patch  # noqa: F401
+from .assets import map as _map  # noqa: F401  (shadows the built-in; the alias keeps it out of this module's namespace)
 from .assets import music as _music  # noqa: F401
 from .assets.byte_patch import BytePatch
 from .free_space import FreeSpaceAllocator

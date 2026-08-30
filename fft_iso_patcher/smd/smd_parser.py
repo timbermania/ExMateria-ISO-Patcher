@@ -51,13 +51,21 @@ class SmdsHeader:
     assoc_wds_id: int               # uint16 at 0x16
     initial_volume: int             # uint8 at 0x18
     unknown_19: int                 # uint8 at 0x19
-    initial_tempo: int              # uint8 at 0x1B (was wrongly 0x1A pre-2026-05-27)
+    initial_tempo: int              # uint8 at 0x1B — THIS TOOL's convention; FFT reads no
+                                    # header tempo at all (#619, SMD_OFFSET_INITIAL_TEMPO)
     song_title_ptr: int             # uint16 LE at 0x1E
     drumkit_ptr: int                # uint16 LE at 0x20
     track_ptrs: List[int] = field(default_factory=list)  # uint16 LE array at 0x22
 
     @property
     def initial_bpm(self) -> float:
+        """BPM this tool would write for `initial_tempo`.
+
+        NOT what FFT will play. FFT seeds tempo from a constant 102 and takes
+        every subsequent change from opcode 0xA0, so it never reads this byte
+        (#619). Meaningful for round-tripping a file this package authored;
+        misleading if read as a fact about playback.
+        """
         return fft_tempo_to_bpm(self.initial_tempo)
 
 

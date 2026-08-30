@@ -50,7 +50,21 @@ SMD_OFFSET_WDS_ID: Final[int] = 0x16          # uint16 LE; always 0 in vanilla (
 SMD_OFFSET_INITIAL_VOLUME: Final[int] = 0x18  # uint8; read as part of u16 with byte 0x19
 SMD_OFFSET_UNK_19: Final[int] = 0x19          # uint8; always 0 in vanilla (high byte of vol u16)
 SMD_OFFSET_INIT_MODE: Final[int] = 0x1A       # uint8 (signed); always 0x04 in vanilla — mode discriminator for FUN_80018140, NOT tempo
-SMD_OFFSET_INITIAL_TEMPO: Final[int] = 0x1B   # uint8; the REAL tempo byte (BPM = val * 256 / 218). Verified at ram:80013740.
+SMD_OFFSET_INITIAL_TEMPO: Final[int] = 0x1B   # uint8; THIS TOOL's tempo byte, not FFT's. See below.
+# FFT reads NO tempo from the SMD header (#619). The tempo state is the channel
+# triple +0x7C / +0x78 / +0x8A, and the init at 0x8001386C-0x80013888 writes it as
+# literals for the constant 102 -- every retail song then issues opcode 0xA0
+# (smd_tempo @ 0x80015CB0) before its first note. A complete scan of every sb/sh/sw
+# to those offsets in 0x80013000-0x80019000 finds no header byte reaching them.
+# 0x1B itself is read once, <<8, into global 0x8003704C, whose only reader writes an
+# (a1+0, a1+2) halfword pair with conditional negation -- a stereo shape, suggestive
+# of volume, not a scalar tempo.
+#
+# The old comment here -- "the REAL tempo byte ... Verified at ram:80013740" -- cited
+# a verification the ROM does not support. The OFFSET stays: this package is an
+# authoring tool, smd_writer.py:351 writes its own tempo here and smd_parser.py reads
+# it back, and that round-trip is a real feature. FFT simply ignores the byte, which
+# is why writing it is harmless. Same call, same reason, as fft-plugin (0a173acf2).
 SMD_OFFSET_SONG_TITLE_PTR: Final[int] = 0x1E  # uint16 LE
 SMD_OFFSET_DRUMKIT_PTR: Final[int] = 0x20     # uint16 LE
 SMD_OFFSET_TRACK_TABLE: Final[int] = 0x22     # start of track_count × uint16 LE
